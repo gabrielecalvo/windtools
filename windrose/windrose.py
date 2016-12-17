@@ -10,10 +10,14 @@ class WindRose(object):
         self.raw_data = pd.DataFrame()
         self.freq_table = pd.DataFrame()
         if fpath:
-            field_map = {ws_field: 'ws', wd_field: 'wd'}
-            self.load_raw_data(fpath, field_map, loading_options)
+            self.field_map = {ws_field: 'ws', wd_field: 'wd'}
+            self._load_raw_data(fpath, self.field_map, loading_options)
 
-    def load_raw_data(self, fpath, field_map, loading_options):
+    def __repr__(self):
+        inv_map = {v: k for k, v in self.field_map.items()}
+        return 'WindRose ["{}" vs "{}"]'.format(inv_map['ws'], inv_map['wd'])
+
+    def _load_raw_data(self, fpath, field_map, loading_options):
         self.raw_data = util.load_data(fpath=fpath, field_map=field_map, loading_options=loading_options, dropna='any')
         self.raw_data.ix[self.raw_data['wd'] == 360, 'wd'] = 0
 
