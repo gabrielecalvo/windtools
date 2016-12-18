@@ -28,12 +28,12 @@ wr = WindRose(fpath='my_wind_data.csv',
     wr.plot_windrose(overlay_sector=[350, 10, 120, 230],
                      save_fig='my_windrose_plot.png')       # -->  saves the plot as image
 ```
-[Here](https://github.com/gabrielecalvo/windrose/docs/my_wind_data.csv "sample source file") you can find the example source data file *my_wind_data.csv*.
+[Here](https://github.com/gabrielecalvo/windrose/raw/master/docs/my_wind_data.csv "sample source file") you can find the example source data file *my_wind_data.csv*.
 
-The resulting frequency distribution file can be found [here](https://github.com/gabrielecalvo/windrose/docs/my_frequency_table.csv "sample frequency distribution output"). 
+The resulting frequency distribution file can be found [here](https://github.com/gabrielecalvo/windrose/raw/master/docs/my_frequency_table.csv "sample frequency distribution output"). 
 
 And the resulting wind rose image looks like this:
-![Sample Windrose Plot](https://github.com/gabrielecalvo/windrose/docs/my_windrose_plot.png?raw=true)
+![Sample Windrose Plot](https://github.com/gabrielecalvo/windrose/raw/master/docs/my_windrose_plot.png?raw=true)
 
 ### Todos
  - Implement the Weibull class
