@@ -3,14 +3,14 @@ import os
 import pandas as pd
 import numpy as np
 import filecmp
-from windrose.windrose import WindRose
+from windtools.windrose import WindRose
 
 from tests.aux_testing_tools import samples_fld, tmp_fld, TestExcel
 test_excel = TestExcel(fpath=samples_fld('testing.xlsx'))
 
 @pytest.fixture()
 def sample_wr():
-    fpath = samples_fld('160590-99999-2015.csv')
+    fpath = samples_fld('sample_data.csv')
     wr = WindRose(fpath=fpath, na_values=[999, 999.9])
     wr.calc_freq_table(ws_bin_step=6, ws_bin_centre=3,
                        wd_bin_step=30, wd_bin_centre=0)

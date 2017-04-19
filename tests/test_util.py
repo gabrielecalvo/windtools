@@ -1,9 +1,14 @@
 import pytest
+import os
+import sys
+import shutil
+from datetime import datetime
 import pandas as pd
 import numpy as np
 import pandas.util.testing as pdt
 
-from windrose.util import define_bins, pair_list, load_data, bin_label_to_bin_edges, bin_data
+from windtools.util import bin_data, bin_label_to_bin_edges, define_bins, download_file, ensure_folder, get_path, \
+    load_data, pair_list, read_file
 from tests.aux_testing_tools import samples_fld, TestExcel
 
 test_excel = TestExcel(fpath=samples_fld('testing.xlsx'))
@@ -52,7 +57,7 @@ def test_pair_list_other_options(target, size, fillvalue, exp):
 
 
 def test_load_raw_data():
-    fpath = samples_fld('160590-99999-2015.csv')
+    fpath = samples_fld('sample_data.csv')
 
     df = load_data(fpath)
     assert list(df.columns) == ['ts', 'ws', 'wd', 'ws2', 'wd2']
@@ -90,3 +95,44 @@ def test_bin_data():
     r = bin_data(data=d_periodic, first_centre=0, step=30, periodicity=360)
     assert len(r.cat.categories) == 12
     assert r.tolist() == ['[-15, 15)', '[-15, 15)', '[165, 195)', '[-15, 15)', '[-15, 15)']
+
+
+def test_ensure_folder():
+    root = os.path.dirname(os.path.abspath(__file__))
+    new_folder = os.path.join(root, 'tmp', 'test_ensure_folder')
+    assert not os.path.isdir(new_folder)
+    ensure_folder(new_folder)
+    assert os.path.isdir(new_folder)
+    shutil.rmtree(new_folder)
+
+
+def test_read_file():
+    root = os.path.dirname(os.path.abspath(__file__))
+    expected = pd.DataFrame({
+        'a': [1, 2, 3],
+        'b': [datetime(2015, 1, 7), datetime(2015, 1, 8), datetime(2015, 1, 9)],
+        'c': ['A', 'B', 'C']
+    })
+
+    for fname in ['test_read.xls', 'test_read.xlsx', 'test_read.xlsm']:
+        fpath = os.path.join(root, 'samples', fname)
+        df = read_file(fpath)
+        assert df.equals(expected)
+
+    for fname in ['test_read_1.csv', 'test_read_2.csv', 'test_read_3.csv']:
+        fpath = os.path.join(root, 'samples', fname)
+        df = read_file(fpath, parse_dates=['b'], dayfirst=True)
+        assert df.equals(expected)
+
+
+def test_download_file():
+    root = get_path(__file__)
+    url_test = 'http://example.org/'
+
+    r = download_file(url_test)
+    assert sys.getsizeof(r) == 1287
+
+    save_to = os.path.join(root, 'tmp', 't')
+    download_file(url_test, save_to=save_to)
+    assert os.stat(save_to).st_size == 1270
+    os.remove(save_to)

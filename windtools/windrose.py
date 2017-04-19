@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from windrose import util
+from windtools import util
 
 
 class WindRose(object):
@@ -41,10 +41,10 @@ class WindRose(object):
         :param overlay_sector: list of start and end of the sector to overlay
         (e.g. from 350 to 10 and 30 to 40: [350, 10, 30, 40])
         :param legend: boolean to determine if legend should be displayed
-        :param labels: list or string to determine what labels to put around the windrose.
+        :param labels: list or string to determine what labels to put around the windtools.
         Default 'degrees' will put the angle in degrees every 30 degrees;
         'cardinal' will put the cardinal direction (e.g. N, SW etc.) every 30 degrees;
-        A list will space the elements in the list evenly around the windrose.
+        A list will space the elements in the list evenly around the windtools.
         :param save_fig: It will save the plot to the specified file path unless set to None.
         None (default) will show the plot instead.
         """

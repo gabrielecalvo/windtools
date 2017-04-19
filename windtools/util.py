@@ -1,7 +1,21 @@
+import os
 import pandas as pd
 import numpy as np
-import os
 from itertools import zip_longest
+from urllib.request import Request, urlopen
+from contextlib import contextmanager
+import datetime
+
+
+def get_path(dunder_file, *args):
+    root = os.path.dirname(os.path.realpath(dunder_file))
+    return os.path.join(root, *args)
+
+
+def ensure_folder(*folderpath):
+    directory = os.path.join(*folderpath)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 
 def load_data(fpath, field_map=None, loading_options=None, dropna=None):
@@ -32,6 +46,16 @@ def read_file(fpath, **kwargs):
             except UnicodeDecodeError:
                 pass
     return df
+
+
+def download_file(url, save_to=None):
+    req = Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    data = urlopen(req).read()
+    if save_to:
+        with open(save_to, 'b+w') as f:
+            f.write(data)
+    else:
+        return data
 
 
 def bin_data(data, first_centre, step, max_val=None, periodicity=None):
@@ -74,9 +98,26 @@ def bin_label_to_bin_edges(label):
     return edges[0], edges[1], right
 
 
+@contextmanager
+def timer(task_name='TIMER'):
+    """
+    Simple context manager code for timing code
+    :param task_name: Name of the task that will be printed next to time, default to "TIMER"
+
+    :Example:
+
+        >>> with timer('my_timed_code1'):
+        >>>     time.sleep(5)
+        [my_timed_code] Time: 0:00:05.002176
+    ---------------------------------------------------------------------------
+    """
+    tstart = datetime.datetime.now()
+    yield
+    print('[{}] Time: {}'.format(task_name, datetime.datetime.now() - tstart))
+
 
 if __name__ == '__main__':
-    fpath = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tests', 'samples', '160590-99999-2015.csv')
+    fpath = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tests', 'samples', 'sample_data.csv')
     df = load_data(fpath, loading_options=dict(index_col=0, na_values=[999]))
     df.dropna(inplace=True)
     r = bin_data(df['wd'], first_centre=0, step=90, periodicity=360)
@@ -84,7 +125,7 @@ if __name__ == '__main__':
 
 
 #
-# ## ======================================== ##
+# ## ======================================== ##0
 # ## CREATING FAKE DATA
 # def create_fake_data():
 #     data = np.random.rand(100, 2)
