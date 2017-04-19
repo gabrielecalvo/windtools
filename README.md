@@ -37,7 +37,8 @@ And the resulting wind rose image looks like this:
 
 ### Todos
  - Implement the Weibull class
- - Further develop the Song class
+ - Further develop the DataDownload class
+ - Continue develop the mcp module
 
 License
 ----

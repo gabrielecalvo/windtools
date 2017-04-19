@@ -14,39 +14,17 @@ STATION_LIST_PATH = get_path(__file__, 'isd-history.txt')
 DOWNLOAD_DATA_SUBFOLDER_NAME = 'downloaded_data'
 
 
-class NCDC_Downloader():
+class Downloader(object):
     def __init__(self, lat=None, long=None, radius_km=50, date_from=None, date_to=None):
         self.latitude = lat
         self.longitude = long
         self.distance = radius_km
         self.date_from = datetime(*date_from) if isinstance(date_from, tuple) else date_from
         self.date_to = datetime(*date_to) if isinstance(date_to, tuple) else date_to
-        self.daterange_tollerance = 0  # days
+
         self.station_id_list = []
         self.station_info = None
         self.station_data = None
-
-    @staticmethod
-    def update_station_list():
-        url = 'ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-history.txt'
-        download_file(url=url, save_to=STATION_LIST_PATH)
-
-    @staticmethod
-    def _convert_between_id_and_usaf_wban(id=None, usaf=None, wban=None):
-        if id:
-            usaf, wban = [float(i) for i in id.split('-')]
-            return usaf, wban
-        else:
-            id = '{:0>6.0f}-{:0>5.0f}'.format(usaf, wban)
-            return id
-
-    @staticmethod
-    def _load_stations_metadata():
-        colspecs = [(0, 7), (7, 13), (13, 43), (43, 48), (48, 51), (51, 57),
-                    (57, 65), (65, 74), (74, 82), (82, 91), (91, 999)]
-        df = pd.read_fwf(STATION_LIST_PATH, skiprows=range(20), colspecs=colspecs, parse_dates=[9, 10])
-        # df.index = [self._convert_between_id_and_usaf_wban(usaf=r['USAF'], wban=r['WBAN']) for i, r in df.iterrows()]
-        return df
 
     @staticmethod
     def haversine(lon1, lat1, lon2, lat2):
@@ -68,13 +46,37 @@ class NCDC_Downloader():
     @staticmethod
     def rh_from_dew_temperature(t, t_dew, simple=False):
         if simple:
-            rh = 5*(t_dew-t)+100
+            rh = 5 * (t_dew - t) + 100
         else:
             T = np.add(t, 273.15)
             Td = np.add(t_dew, 273.15)
             L_Rv = 5423
-            rh = np.exp(L_Rv*(1/T-1/Td))*100
+            rh = np.exp(L_Rv * (1 / T - 1 / Td)) * 100
         return rh
+
+
+class NCDC_Downloader(Downloader):
+    @staticmethod
+    def update_station_list():
+        url = 'ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-history.txt'
+        download_file(url=url, save_to=STATION_LIST_PATH)
+
+    @staticmethod
+    def _load_stations_metadata():
+        colspecs = [(0, 7), (7, 13), (13, 43), (43, 48), (48, 51), (51, 57),
+                    (57, 65), (65, 74), (74, 82), (82, 91), (91, 999)]
+        df = pd.read_fwf(STATION_LIST_PATH, skiprows=range(20), colspecs=colspecs, parse_dates=[9, 10])
+        # df.index = [self._convert_between_id_and_usaf_wban(usaf=r['USAF'], wban=r['WBAN']) for i, r in df.iterrows()]
+        return df
+
+    @staticmethod
+    def _convert_between_id_and_usaf_wban(id=None, usaf=None, wban=None):
+        if id:
+            usaf, wban = [float(i) for i in id.split('-')]
+            return usaf, wban
+        else:
+            id = '{:0>6.0f}-{:0>5.0f}'.format(usaf, wban)
+            return id
 
     def find_stations_nearby(self):
         assert self.latitude and self.longitude and self.distance
@@ -90,9 +92,9 @@ class NCDC_Downloader():
         distance_mask = stations['Distance'] <= self.distance
         timerange_mask = [True] * len(stations)
         if self.date_from:
-            timerange_mask &= stations['BEGIN'] <= self.date_from + timedelta(days=self.daterange_tollerance)
+            timerange_mask &= stations['BEGIN'] <= self.date_from
         if self.date_to:
-            timerange_mask &= stations['END'] >= self.date_to - timedelta(days=self.daterange_tollerance)
+            timerange_mask &= stations['END'] >= self.date_to
         stations_nearby = stations[distance_mask & timerange_mask]
 
         # adding ids as index
@@ -198,13 +200,6 @@ class NCDC_Downloader():
         inst.export_data_from_selected_stations(inst.station_id_list)
         inst.save_all_downloaded_data()
 
+
 if __name__ == '__main__':
-    test_dict = dict(lat=45, long=7.7, radius_km=10, date_from=(2015, 12, 20))
-
-    # with timer('get_all'):
-    #     NCDC_downloader.get_all(test_dict)
-
-    downloader = NCDC_Downloader(test_dict)
-    nearby_stations = downloader.find_stations_nearby()
-    wanted_stations = nearby_stations[0:2]
-    downloader.download_and_save_data(wanted_stations)
+    pass

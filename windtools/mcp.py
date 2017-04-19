@@ -3,22 +3,22 @@ import numpy as np
 from scipy.stats import linregress
 
 
-def mcp(df):
+def mcp(df, wd_bin_size=30):
     assert {'ws_site', 'wd_site', 'ws_ref', 'wd_ref'} <= set(df.columns)
-    df['wd_bin'] = pd.cut(df['wd_ref'], np.arange(0, 360, 30))
+    df['wd_bin'] = pd.cut(df['wd_ref'], np.arange(0, 360+wd_bin_size/2, wd_bin_size), right=False)
 
-    df_regression = pd.DataFrame(columns=['m', 'c', 'r', 'p', 'err'])
-    for wd_bin in df['wd_bin'].cat.categories:
-        data_in_bin = df[df['wd_bin'] == wd_bin]
-        if len(data_in_bin) >= 2:
-            m, c, r, p, err = linregress(x=data_in_bin['ws_ref'], y=data_in_bin['ws_site'])
-            new_row = pd.DataFrame(dict(m=m, c=c, r=r, p=p, err=err), index=[wd_bin])
-            df_regression = df_regression.append(new_row)
+    regression_params = {}
+    for wd_bin, sub_df in df.groupby('wd_bin'):
+        n_points = sub_df.shape[0]
+        if n_points >= 2:
+            m, c, r, p, err = linregress(x=sub_df['ws_ref'], y=sub_df['ws_site'])
+            regression_params[wd_bin] = dict(m=m, c=c, r=r, p=p, err=err, n=n_points)
         else:
-            new_row = pd.DataFrame(dict(m=np.nan, c=np.nan, r=np.nan, p=np.nan, err=np.nan), index=[wd_bin])
-            df_regression = df_regression.append(new_row)
+            regression_params[wd_bin] = {'n': n_points}
 
+    df_regression = pd.DataFrame(regression_params)
     print(df_regression)
+    return df_regression
 
 if __name__ == "__main__":
     df = pd.DataFrame({
